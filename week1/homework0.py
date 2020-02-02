@@ -3,7 +3,6 @@
 
 from bs4 import BeautifulSoup
 import re
-import csv
 
 # Import file contents
 i = 0
@@ -31,19 +30,37 @@ f.close()
 
 # Extracting emails
 emails = []
-for line in websites_p:
-    match = re.search(r'[\w\.-]+@[\w\.-]+', line) #flag
-    if match:
-        # print(match.group(0))
-        emails.append(match.group(0))
-    else:
-        emails.append("None")
+with open("email-no_match.txt", "w") as f:
+    for line in websites_p:
+        # match = re.search(r'[\w\.-]+@[\w\.-]+', line)
+        match = re.search(r'([a-zA-Z0-9_\-\.\_]{1,64})@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})', line)
+        if match:
+            # print(match.group(0))
+            emails.append(match.group(0))
+        else:
+            match = re.search(r'([a-zA-Z0-9_\-\.\_]+)(\s@?\[?\/?([aA][tT])?\]?\/?\s)([a-zA-Z0-9_\-\.]+)(\s\.?\[?\/?([dD][oO][tT])?\]?\/?\s)([a-zA-Z]{2,5})', line)
+            if match:
+                # text = match.group(0)
+                text = match.group(1) + "@" + match.group(4) + "." + match.group(7)
+                emails.append(text)
+            else:
+                # text = "***** REVIEW - " + line
+                # emails.append(text)
+                emails.append("None")
+                f.write(line)
+                f.write("\n")
+
+f.close()
 
 # Exporting CSV
 j = 0
 with open("email-outputs.csv", "w") as f:
+    f.write("Id,Category")
+    f.write("\n")
     for line in emails:
         # print(line)
+        f.write(str(j))
+        f.write(",")
         f.write(line)
         j += 1
         if j != i:
